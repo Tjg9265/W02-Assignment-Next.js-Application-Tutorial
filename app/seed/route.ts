@@ -1,6 +1,11 @@
 import { db } from '@vercel/postgres';
 import bcrypt from 'bcrypt';
 
+type SeedClient = {
+  sql: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
+  release: () => void;
+};
+
 const users = [
   {
     id: '410544b2-4001-4271-9855-fec4b6a6442a',
@@ -145,7 +150,7 @@ const revenue = [
   { month: 'Dec', revenue: 4800 },
 ];
 
-async function seedUsers(client: any) {
+async function seedUsers(client: SeedClient) {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
     CREATE TABLE IF NOT EXISTS users (
@@ -166,7 +171,7 @@ async function seedUsers(client: any) {
   }
 }
 
-async function seedCustomers(client: any) {
+async function seedCustomers(client: SeedClient) {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
     CREATE TABLE IF NOT EXISTS customers (
@@ -186,7 +191,7 @@ async function seedCustomers(client: any) {
   }
 }
 
-async function seedInvoices(client: any) {
+async function seedInvoices(client: SeedClient) {
   await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
   await client.sql`
     CREATE TABLE IF NOT EXISTS invoices (
@@ -207,7 +212,7 @@ async function seedInvoices(client: any) {
   }
 }
 
-async function seedRevenue(client: any) {
+async function seedRevenue(client: SeedClient) {
   await client.sql`
     CREATE TABLE IF NOT EXISTS revenue (
       month VARCHAR(4) NOT NULL UNIQUE,
@@ -225,7 +230,7 @@ async function seedRevenue(client: any) {
 }
 
 export async function GET() {
-  const client = await db.connect();
+  const client = (await db.connect()) as SeedClient;
 
   try {
     await client.sql`BEGIN`;
